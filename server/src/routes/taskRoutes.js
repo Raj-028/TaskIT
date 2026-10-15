@@ -1,7 +1,9 @@
 import express from "express"
 import Task from "../models/task.js"
+import handleErrors from "../utils/handleErrors.js"
+import sendSuccess from "../utils/sendSuccess.js"
 
-const router = express()
+const router = express.Router()
 
 router.get('/', async(req, res) => {
     try {
@@ -13,10 +15,7 @@ router.get('/', async(req, res) => {
             tasks
         })
     }catch (err) {
-        res.status(500).json({
-            success: false,
-            message: `failed to fetch task: ${err.message}`
-        })
+        handleErrors(res, err, "Failed to Fetch the Task")
     }
 })
 
@@ -26,7 +25,7 @@ router.post('/', async (req, res) => {
 
         if(!Title || !Title.trim()){
             return res.status(400).json({
-                success: true,
+                success: false,
                 message: "Task Title is Required"
             })
         }
@@ -38,21 +37,16 @@ router.post('/', async (req, res) => {
             DueDate
         })
 
-        res.status(201).json({
-            success: true,
-            task
-        })
-
+        sendSuccess(res, {task})
+       
     }catch(err){
-        res.status(500).json({
-            success: false,
-            message: `failed to create task: ${err.message}`
-        })
+        handleErrors(res, err, "Failed to Create the Task")
     }
 })
 
 router.patch('/:id', async (req, res) => {
     try {
+
         const task = await Task.findByIdAndUpdate(
             req.params.id,
             req.body,
@@ -68,16 +62,12 @@ router.patch('/:id', async (req, res) => {
                 message: "task not found"
             })
         }
-        res.status(200).json({
-            success: true,
-            task
-        })
+
+        sendSuccess(res, {task})
+    
     }
     catch(err){
-        res.status(500).json({
-            success: false,
-            message: `Failed to update the Task: ${err.message}`
-        })
+        handleErrors(res, err, "Failed to Update the Task")
     }
 })
 
@@ -93,17 +83,30 @@ router.delete('/:id', async (req, res) => {
             })
         }
 
-        res.status(200).json({
-            success: true,
-            message: "Task Deleted Successfully",
-            task
-        })
+        sendSuccess(res, {task}, "Task Deleted Successfully")
+
     }
     catch(err){
-        res.status(500).json({
-            success: false,
-            message: `Failed to Delete the Task: ${err.message}`
-        })
+        handleErrors(res, err, "Failed to Delete the Task")
+    }
+})
+
+
+router.get('/:id', async (req, res) => {
+    try{
+        const task = await Task.findById(req.params.id)
+
+        if(!task){
+            return res.status(404).json({
+                success: false,
+                message: "Task not Found"
+            })
+        }
+
+        sendSuccess(res, {task})
+
+    }catch(err){
+        handleErrors(res, err, "Failed to Fetch the Task")
     }
 })
 
