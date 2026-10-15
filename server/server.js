@@ -1,8 +1,8 @@
-require("dotenv").config()
+import 'dotenv/config';
 
-const express = require('express')
-const connectDB = require("./src/config/db")
-const taskRoutes = require('./src/routes/taskRoutes')
+import express from "express"
+import connectDB from "./src/config/db.js"
+import taskRoutes from "./src/routes/taskRoutes.js"
 
 const app = express()
 
@@ -12,7 +12,7 @@ app.get('/', (req, res) => {
     res.send("this is finally working")
 })
 
-app.use("/api/tasks", taskRoutes)
+app.use("/tasks", taskRoutes)
 
 taskRoutes.get('/check', (req, res) => {
     res.send("this router works")

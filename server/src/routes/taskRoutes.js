@@ -1,5 +1,5 @@
-const express = require("express")
-const Task = require("../models/task")
+import express from "express"
+import Task from "../models/task.js"
 
 const router = express()
 
@@ -14,7 +14,7 @@ router.get('/', async(req, res) => {
         })
     }catch (err) {
         res.status(500).json({
-            success:false,
+            success: false,
             message: `failed to fetch task: ${err.message}`
         })
     }
@@ -81,4 +81,30 @@ router.patch('/:id', async (req, res) => {
     }
 })
 
-module.exports = router
+
+router.delete('/:id', async (req, res) => {
+    try{
+        const task = await Task.findByIdAndDelete(req.params.id)
+
+        if(!task){
+            return res.status(404).json({
+                success: false,
+                message: "Task not found"
+            })
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Task Deleted Successfully",
+            task
+        })
+    }
+    catch(err){
+        res.status(500).json({
+            success: false,
+            message: `Failed to Delete the Task: ${err.message}`
+        })
+    }
+})
+
+export default router
