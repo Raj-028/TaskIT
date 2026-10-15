@@ -51,4 +51,34 @@ router.post('/', async (req, res) => {
     }
 })
 
+router.patch('/:id', async (req, res) => {
+    try {
+        const task = await Task.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            {
+                new: true,
+                runValidators: true
+            }
+        )
+
+        if(!task) {
+            return res.status(404).json({
+                success: false,
+                message: "task not found"
+            })
+        }
+        res.status(200).json({
+            success: true,
+            task
+        })
+    }
+    catch(err){
+        res.status(500).json({
+            success: false,
+            message: `Failed to update the Task: ${err.message}`
+        })
+    }
+})
+
 module.exports = router
