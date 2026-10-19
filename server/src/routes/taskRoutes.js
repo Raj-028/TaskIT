@@ -2,18 +2,21 @@ import express from "express"
 import Task from "../models/task.js"
 import handleErrors from "../utils/handleErrors.js"
 import sendSuccess from "../utils/sendSuccess.js"
+import isValidObjectID from "../utils/isValidObjectID.js"
+import handleTaskNotFound from "../utils/handleTaskNotFound.js"
 
 const router = express.Router()
 
 router.get('/', async(req, res) => {
     try {
+
         const tasks = await Task.find()
         
-        res.status(200).json({
-            success: true,
+        return sendSuccess(res, {
             count: tasks.length,
             tasks
         })
+
     }catch (err) {
         handleErrors(res, err, "Failed to Fetch the Task")
     }
@@ -37,12 +40,17 @@ router.post('/', async (req, res) => {
             DueDate
         })
 
-        sendSuccess(res, {task})
+        return res.status(201).json({
+            success: true,
+            task
+        })
        
     }catch(err){
         handleErrors(res, err, "Failed to Create the Task")
     }
 })
+
+router.use('/:id', isValidObjectID)
 
 router.patch('/:id', async (req, res) => {
     try {
@@ -56,14 +64,11 @@ router.patch('/:id', async (req, res) => {
             }
         )
 
-        if(!task) {
-            return res.status(404).json({
-                success: false,
-                message: "task not found"
-            })
+        if(!task){
+            return handleTaskNotFound(res)
         }
 
-        sendSuccess(res, {task})
+        return sendSuccess(res, {task})
     
     }
     catch(err){
@@ -76,14 +81,11 @@ router.delete('/:id', async (req, res) => {
     try{
         const task = await Task.findByIdAndDelete(req.params.id)
 
-        if(!task){
-            return res.status(404).json({
-                success: false,
-                message: "Task not found"
-            })
+       if(!task){
+            return handleTaskNotFound(res)
         }
 
-        sendSuccess(res, {task}, "Task Deleted Successfully")
+        return sendSuccess(res, {task})
 
     }
     catch(err){
@@ -96,14 +98,11 @@ router.get('/:id', async (req, res) => {
     try{
         const task = await Task.findById(req.params.id)
 
-        if(!task){
-            return res.status(404).json({
-                success: false,
-                message: "Task not Found"
-            })
+       if(!task){
+            return handleTaskNotFound(res)
         }
 
-        sendSuccess(res, {task})
+        return sendSuccess(res, {task})
 
     }catch(err){
         handleErrors(res, err, "Failed to Fetch the Task")
