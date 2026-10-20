@@ -9,8 +9,30 @@ const router = express.Router()
 
 router.get('/', async(req, res) => {
     try {
+        const search = req.query.search?.trim()
+        const status = req.query.status?.trim()
+        const priority = req.query.priority?.trim()
+        const filter = {}
 
-        const tasks = await Task.find()
+        if(search) {
+            filter.$or = [
+                    {Title: {$regex: search, $options: "i"}},
+                    {Description: {$regex: search, $options: "i"}}
+                ]
+        }
+
+        if(status) {
+            filter.Status = {$regex: `^${status}$`, $options: "i"}
+        }
+
+        if(priority) {
+            filter.Priority = {$regex: `^${priority}$`, $options: "i"}
+        }
+
+        console.log(filter)
+
+        const tasks = await Task.find(filter)
+
         
         return sendSuccess(res, {
             count: tasks.length,
@@ -24,7 +46,7 @@ router.get('/', async(req, res) => {
 
 router.post('/', async (req, res) => {
     try{
-        const {Title, Description, Priority, DueDate} = req.body
+        const {Title, Description, Status, Priority, DueDate} = req.body
 
         if(!Title || !Title.trim()){
             return res.status(400).json({
@@ -36,6 +58,7 @@ router.post('/', async (req, res) => {
         const task = await Task.create({
             Title,
             Description,
+            Status,
             Priority,
             DueDate
         })
